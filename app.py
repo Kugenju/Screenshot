@@ -8,7 +8,7 @@ import threading
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 import pystray
 from PIL import Image, ImageDraw, ImageOps, ImageTk
@@ -449,13 +449,13 @@ class ScreenshotDesktopApp:
             show="tree headings",
             style="Gallery.Treeview",
         )
-        tree.heading("#0", text="Preview")
+        tree.heading("#0", text="Preview", anchor="center")
         tree.column("#0", width=145, anchor="center", stretch=False)
-        tree.heading("filename", text="Filename")
-        tree.heading("modified", text="Modified")
-        tree.heading("size", text="Size")
-        tree.column("filename", width=360, anchor="w")
-        tree.column("modified", width=185, anchor="w")
+        tree.heading("filename", text="Filename", anchor="center")
+        tree.heading("modified", text="Modified", anchor="center")
+        tree.heading("size", text="Size", anchor="center")
+        tree.column("filename", width=360, anchor="center")
+        tree.column("modified", width=185, anchor="center")
         tree.column("size", width=84, anchor="center", stretch=False)
 
         scroll_y = ttk.Scrollbar(table_shell, orient="vertical", command=tree.yview)
@@ -465,10 +465,11 @@ class ScreenshotDesktopApp:
 
         tree.bind("<Double-1>", lambda _evt: self.open_selected_screenshot())
         tree.bind("<Delete>", lambda _evt: self.delete_selected_screenshot())
+        tree.bind("<F2>", lambda _evt: self.rename_selected_screenshot())
         self._gallery_tree = tree
 
         gallery_actions = ttk.Frame(card, style="Card.TFrame")
-        gallery_actions.grid(row=9, column=0, columnspan=3, sticky="w", pady=(10, 0))
+        gallery_actions.grid(row=9, column=0, columnspan=3, pady=(10, 0))
 
         ttk.Button(
             gallery_actions,
@@ -480,6 +481,12 @@ class ScreenshotDesktopApp:
             gallery_actions,
             text="Delete",
             command=self.delete_selected_screenshot,
+            style="Secondary.TButton",
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            gallery_actions,
+            text="Rename",
+            command=self.rename_selected_screenshot,
             style="Secondary.TButton",
         ).pack(side="left", padx=(8, 0))
         ttk.Button(
@@ -728,6 +735,53 @@ class ScreenshotDesktopApp:
             self.refresh_screenshot_list()
         except OSError as exc:
             messagebox.showerror("Delete failed", str(exc))
+
+    def rename_selected_screenshot(self):
+        path = self._selected_gallery_path()
+        if path is None:
+            messagebox.showinfo("Select screenshot", "Please select one screenshot first.")
+            return
+        if not path.exists():
+            self.refresh_screenshot_list()
+            return
+
+        new_name_input = simpledialog.askstring(
+            "Rename screenshot",
+            "New file name (with or without extension):",
+            initialvalue=path.stem,
+            parent=self.root,
+        )
+        if new_name_input is None:
+            return
+
+        new_name_input = new_name_input.strip()
+        if not new_name_input:
+            messagebox.showerror("Invalid name", "File name cannot be empty.")
+            return
+        if any(ch in new_name_input for ch in '<>:"/\\|?*'):
+            messagebox.showerror("Invalid name", "File name contains invalid characters.")
+            return
+        if new_name_input in {".", ".."}:
+            messagebox.showerror("Invalid name", "File name is invalid.")
+            return
+
+        target_name = new_name_input
+        if "." not in Path(new_name_input).name:
+            target_name = new_name_input + path.suffix
+
+        target_path = path.with_name(target_name)
+        if target_path == path:
+            return
+        if target_path.exists():
+            messagebox.showerror("Name exists", "A file with this name already exists.")
+            return
+
+        try:
+            path.rename(target_path)
+            self.status_var.set(f"[{datetime.now():%H:%M:%S}] Renamed to: {target_path.name}")
+            self.refresh_screenshot_list(highlight_filename=target_path.name)
+        except OSError as exc:
+            messagebox.showerror("Rename failed", str(exc))
 
     def open_save_folder(self):
         folder = Path(self.service.save_dir)

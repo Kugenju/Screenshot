@@ -61,9 +61,10 @@ powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
 2. 设置 `Save folder`，再通过 `Record Keys` 录制快捷键或手动输入 `Hotkey`。
 3. 在系统任意位置按快捷键触发截图。
 4. 截图后会播放提示音，并在左下角弹出缩略图预览小窗。
-5. 可在截图列表中管理已有截图（`Open`、`Delete`、`Open Folder`、`Refresh`）。
-6. 最小化或关闭窗口后，应用会进入托盘继续运行。
-7. 可通过托盘菜单执行：打开设置、立即截图、退出应用。
+5. 可在居中缩略图表格中管理已有截图（`Open`、`Delete`、`Rename`、`Open Folder`、`Refresh`）。
+6. 选中截图后按 `F2` 可快速重命名。
+7. 最小化或关闭窗口后，应用会进入托盘继续运行。
+8. 可通过托盘菜单执行：打开设置、立即截图、退出应用。
 
 ## 支持的快捷键按键
 

@@ -61,9 +61,10 @@ Double-click the EXE to run. It opens a standalone app window and keeps running 
 2. Set `Save folder`, then use `Record Keys` or input `Hotkey` manually.
 3. Press your hotkey anywhere in Windows to capture.
 4. The app plays a sound and shows a preview popup near the bottom-left after capture.
-5. Manage existing screenshots in the list (`Open`, `Delete`, `Open Folder`, `Refresh`).
-6. Minimize or close the window to hide into tray and continue running.
-7. Use tray icon menu to reopen settings, capture once, or exit.
+5. Manage existing screenshots in the centered thumbnail table (`Open`, `Delete`, `Rename`, `Open Folder`, `Refresh`).
+6. Press `F2` on a selected screenshot to rename quickly.
+7. Minimize or close the window to hide into tray and continue running.
+8. Use tray icon menu to reopen settings, capture once, or exit.
 
 ## Supported hotkey keys
 
