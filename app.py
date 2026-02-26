@@ -2,6 +2,7 @@ import argparse
 import atexit
 import json
 import os
+import sys
 import threading
 import webbrowser
 from pathlib import Path
@@ -10,8 +11,19 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from screenshot_service import ScreenshotService
 
-BASE_DIR = Path(__file__).resolve().parent
-CONFIG_PATH = BASE_DIR / "config.json"
+
+def resolve_runtime_paths():
+    if getattr(sys, "frozen", False):
+        bundle_dir = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+        data_dir = Path(sys.executable).resolve().parent
+        return bundle_dir, data_dir
+
+    base_dir = Path(__file__).resolve().parent
+    return base_dir, base_dir
+
+
+BASE_DIR, DATA_DIR = resolve_runtime_paths()
+CONFIG_PATH = DATA_DIR / "config.json"
 
 DEFAULT_CONFIG = {
     "save_dir": str(Path.home() / "Pictures" / "QuickShots"),
@@ -62,7 +74,11 @@ def save_config(config):
 
 config = load_config()
 service = ScreenshotService(config["save_dir"], config["hotkey"])
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static"),
+)
 
 
 @atexit.register
@@ -139,9 +155,14 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=5123)
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument(
+        "--background",
+        action="store_true",
+        help="Run without opening the settings page in browser",
+    )
     args = parser.parse_args()
 
-    if not args.no_browser:
+    if not args.no_browser and not args.background:
         url = f"http://{args.host}:{args.port}"
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
 

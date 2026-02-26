@@ -24,9 +24,35 @@ On Windows, the app now hides the console window by default. To keep it visible 
 $env:SCREENSHOT_SHOW_CONSOLE=1; py app.py
 ```
 
+Run fully in background (no browser auto-open):
+
+```powershell
+py app.py --background
+```
+
 Default UI URL:
 
 `http://127.0.0.1:5123`
+
+## Build EXE (one-click)
+
+Install PyInstaller:
+
+```powershell
+py -m pip install pyinstaller
+```
+
+Build:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
+```
+
+Output:
+
+`dist\QuickScreenshot.exe`
+
+Double-click the EXE to run. It will keep listening for the global hotkey in background and the web page is used to change hotkey and screenshot save directory.
 
 ## Usage
 
