@@ -6,6 +6,10 @@ A small Windows utility with:
 - save screenshots to your chosen folder
 - a native desktop settings window
 - system tray support (minimize to tray, keep running in background)
+- capture sound effect on every screenshot
+- bottom-left preview popup after each capture
+- screenshot gallery to view/open/delete captures
+- hotkey recording by pressing keys directly
 
 ## Setup
 
@@ -54,10 +58,12 @@ Double-click the EXE to run. It opens a standalone app window and keeps running 
 ## Usage
 
 1. Open the app window.
-2. Set `Save folder` and `Hotkey`, then click `Save Settings`.
+2. Set `Save folder`, then use `Record Keys` or input `Hotkey` manually.
 3. Press your hotkey anywhere in Windows to capture.
-4. Minimize or close the window to hide into tray and continue running.
-5. Use tray icon menu to reopen settings, capture once, or exit.
+4. The app plays a sound and shows a preview popup near the bottom-left after capture.
+5. Manage existing screenshots in the list (`Open`, `Delete`, `Open Folder`, `Refresh`).
+6. Minimize or close the window to hide into tray and continue running.
+7. Use tray icon menu to reopen settings, capture once, or exit.
 
 ## Supported hotkey keys
 

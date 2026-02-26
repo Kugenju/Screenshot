@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import Lock
 import time
-from typing import List
+from typing import Callable, List, Optional
 
 import mss
 import mss.tools
@@ -34,6 +34,7 @@ class ScreenshotService:
     def __init__(self, save_dir: str, hotkey: str):
         self._listener = None
         self._state_lock = Lock()
+        self._on_capture: Optional[Callable[[Path], None]] = None
         self.save_dir = Path(save_dir).expanduser()
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self.hotkey, self.hotkey_display = self._normalize_hotkey(hotkey)
@@ -66,6 +67,10 @@ class ScreenshotService:
             self.hotkey_display = display_hotkey
             self._start_listener()
 
+    def set_on_capture(self, callback: Optional[Callable[[Path], None]]):
+        with self._state_lock:
+            self._on_capture = callback
+
     def _capture_callback(self):
         try:
             # Tiny delay helps avoid capturing the just-triggered foreground window.
@@ -89,7 +94,29 @@ class ScreenshotService:
             shot = sct.grab(sct.monitors[0])
             mss.tools.to_png(shot.rgb, shot.size, output=str(path))
 
+        self._play_capture_sound()
+        self._notify_capture(path)
         return path
+
+    def _notify_capture(self, path: Path):
+        callback = None
+        with self._state_lock:
+            callback = self._on_capture
+        if callback is None:
+            return
+        try:
+            callback(path)
+        except Exception:
+            return
+
+    @staticmethod
+    def _play_capture_sound():
+        try:
+            import winsound
+
+            winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        except Exception:
+            return
 
     def list_screenshots(self, limit: int = 80) -> List[dict]:
         with self._state_lock:
