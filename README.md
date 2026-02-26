@@ -8,7 +8,7 @@ A small Windows utility with:
 - system tray support (minimize to tray, keep running in background)
 - capture sound effect on every screenshot
 - bottom-left preview popup after each capture
-- screenshot gallery to view/open/delete captures
+- screenshot gallery with thumbnails to view/open/delete captures
 - hotkey recording by pressing keys directly
 
 ## Setup

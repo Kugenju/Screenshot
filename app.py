@@ -103,6 +103,34 @@ def maybe_hide_console_window():
         return
 
 
+def enable_high_dpi_awareness():
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+
+        # Prefer per-monitor v2 DPI awareness on modern Windows.
+        if ctypes.windll.user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4)):
+            return
+    except Exception:
+        pass
+
+    try:
+        import ctypes
+
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        return
+    except Exception:
+        pass
+
+    try:
+        import ctypes
+
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        return
+
+
 def load_config():
     if not CONFIG_PATH.exists():
         return DEFAULT_CONFIG.copy()
@@ -164,6 +192,7 @@ class ScreenshotDesktopApp:
         self._preview_hide_timer = None
         self._gallery_tree = None
         self._gallery_paths = {}
+        self._gallery_thumbs = {}
 
         self.save_dir_var = tk.StringVar(value=str(self.service.save_dir))
         self.hotkey_var = tk.StringVar(value=self.service.hotkey_display)
@@ -258,7 +287,7 @@ class ScreenshotDesktopApp:
         style.configure(
             "Gallery.Treeview",
             font=("Segoe UI", 10),
-            rowheight=30,
+            rowheight=76,
             background="white",
             fieldbackground="white",
             foreground=COLORS["text"],
@@ -417,15 +446,17 @@ class ScreenshotDesktopApp:
         tree = ttk.Treeview(
             table_shell,
             columns=("filename", "modified", "size"),
-            show="headings",
+            show="tree headings",
             style="Gallery.Treeview",
         )
+        tree.heading("#0", text="Preview")
+        tree.column("#0", width=145, anchor="center", stretch=False)
         tree.heading("filename", text="Filename")
         tree.heading("modified", text="Modified")
         tree.heading("size", text="Size")
-        tree.column("filename", width=420, anchor="w")
-        tree.column("modified", width=220, anchor="w")
-        tree.column("size", width=90, anchor="center")
+        tree.column("filename", width=360, anchor="w")
+        tree.column("modified", width=185, anchor="w")
+        tree.column("size", width=84, anchor="center", stretch=False)
 
         scroll_y = ttk.Scrollbar(table_shell, orient="vertical", command=tree.yview)
         tree.configure(yscrollcommand=scroll_y.set)
@@ -600,6 +631,7 @@ class ScreenshotDesktopApp:
 
         self._gallery_tree.delete(*self._gallery_tree.get_children())
         self._gallery_paths.clear()
+        self._gallery_thumbs.clear()
 
         items = self.service.list_screenshots(limit=300)
         target_iid = None
@@ -608,13 +640,18 @@ class ScreenshotDesktopApp:
             modified = self._format_modified(item.get("modified", ""))
             size_kb = max(1, int(item.get("size", 0) / 1024))
             iid = f"shot_{idx}"
+            path = self.service.save_dir / filename
+            thumb = self._build_gallery_thumbnail(path)
             self._gallery_tree.insert(
                 "",
                 "end",
                 iid=iid,
+                text="",
+                image=thumb,
                 values=(filename, modified, f"{size_kb} KB"),
             )
-            self._gallery_paths[iid] = self.service.save_dir / filename
+            self._gallery_paths[iid] = path
+            self._gallery_thumbs[iid] = thumb
             if highlight_filename and filename == highlight_filename:
                 target_iid = iid
             if not highlight_filename and selected_name and filename == selected_name:
@@ -636,6 +673,20 @@ class ScreenshotDesktopApp:
             return datetime.fromisoformat(modified_value).strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
             return str(modified_value)
+
+    def _build_gallery_thumbnail(self, path: Path):
+        size = (126, 72)
+        try:
+            with Image.open(path) as image:
+                thumb = ImageOps.fit(image.convert("RGB"), size, method=LANCZOS)
+            return ImageTk.PhotoImage(thumb)
+        except Exception:
+            fallback = Image.new("RGB", size, "#E8EFFC")
+            draw = ImageDraw.Draw(fallback)
+            draw.rectangle((10, 10, size[0] - 10, size[1] - 10), outline="#9DB4DF", width=2)
+            draw.line((14, size[1] - 16, size[0] - 14, size[1] - 16), fill="#9DB4DF", width=2)
+            draw.text((16, 24), "No Preview", fill="#5F78A8")
+            return ImageTk.PhotoImage(fallback)
 
     def _selected_gallery_path(self):
         if self._gallery_tree is None:
@@ -904,6 +955,7 @@ def main():
     def shutdown_service():
         service.stop()
 
+    enable_high_dpi_awareness()
     maybe_hide_console_window()
     root = tk.Tk()
     ScreenshotDesktopApp(root, service, start_hidden=args.background)
