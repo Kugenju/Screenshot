@@ -18,6 +18,12 @@ py -m pip install -r requirements.txt
 py app.py
 ```
 
+On Windows, the app now hides the console window by default. To keep it visible for debugging:
+
+```powershell
+$env:SCREENSHOT_SHOW_CONSOLE=1; py app.py
+```
+
 Default UI URL:
 
 `http://127.0.0.1:5123`

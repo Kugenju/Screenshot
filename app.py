@@ -1,6 +1,7 @@
 import argparse
 import atexit
 import json
+import os
 import threading
 import webbrowser
 from pathlib import Path
@@ -16,6 +17,26 @@ DEFAULT_CONFIG = {
     "save_dir": str(Path.home() / "Pictures" / "QuickShots"),
     "hotkey": "Ctrl+Shift+S",
 }
+
+
+def maybe_hide_console_window():
+    if os.name != "nt":
+        return
+    if os.environ.get("SCREENSHOT_SHOW_CONSOLE", "").strip().lower() in {"1", "true", "yes"}:
+        return
+
+    try:
+        import ctypes
+
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)
+    except Exception:
+        # Keep startup resilient if Win32 APIs are unavailable.
+        return
+
+
+maybe_hide_console_window()
 
 
 def load_config():

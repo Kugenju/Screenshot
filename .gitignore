@@ -11,11 +11,14 @@ env/
 # Environment files
 .env
 .env.*
+config.json
 
 # Build / distribution
 build/
 dist/
 *.egg-info/
+shots/
+*.spec
 
 # IDE / OS
 .vscode/

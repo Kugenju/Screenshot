@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
+import time
 from typing import List
 
 import mss
@@ -67,12 +68,16 @@ class ScreenshotService:
 
     def _capture_callback(self):
         try:
-            self.capture_screenshot()
+            # Tiny delay helps avoid capturing the just-triggered foreground window.
+            self.capture_screenshot(delay_seconds=0.2)
         except OSError:
             # Keep background listener alive if saving fails once.
             return
 
-    def capture_screenshot(self) -> Path:
+    def capture_screenshot(self, delay_seconds: float = 0.0) -> Path:
+        if delay_seconds > 0:
+            time.sleep(delay_seconds)
+
         with self._state_lock:
             target_dir = self.save_dir
         target_dir.mkdir(parents=True, exist_ok=True)
