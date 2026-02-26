@@ -30,6 +30,7 @@ LANCZOS = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
 DEFAULT_CONFIG = {
     "save_dir": str(Path.home() / "Pictures" / "QuickShots"),
     "hotkey": "Ctrl+Shift+S",
+    "auto_start": False,
 }
 
 COLORS = {
@@ -85,6 +86,9 @@ KEYSYM_TO_HOTKEY = {
     "Print": "PrintScreen",
     "Snapshot": "PrintScreen",
 }
+
+RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
+RUN_VALUE_NAME = "QuickScreenshot"
 
 
 def maybe_hide_console_window():
@@ -145,6 +149,8 @@ def load_config():
             config["save_dir"] = data["save_dir"]
         if isinstance(data.get("hotkey"), str):
             config["hotkey"] = data["hotkey"]
+        if isinstance(data.get("auto_start"), bool):
+            config["auto_start"] = data["auto_start"]
     return config
 
 
@@ -177,8 +183,45 @@ def create_icon_image(size=64):
     return img
 
 
+class AutoStartManager:
+    def __init__(self):
+        self.supported = os.name == "nt"
+
+    @staticmethod
+    def _launch_command():
+        if getattr(sys, "frozen", False):
+            return f'"{sys.executable}" --background'
+        return f'"{sys.executable}" "{Path(__file__).resolve()}" --background'
+
+    def is_enabled(self):
+        if not self.supported:
+            return False
+        try:
+            import winreg
+
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_REG_PATH, 0, winreg.KEY_READ) as key:
+                value, _ = winreg.QueryValueEx(key, RUN_VALUE_NAME)
+                return isinstance(value, str) and bool(value.strip())
+        except OSError:
+            return False
+
+    def set_enabled(self, enabled: bool):
+        if not self.supported:
+            return
+        import winreg
+
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, RUN_REG_PATH) as key:
+            if enabled:
+                winreg.SetValueEx(key, RUN_VALUE_NAME, 0, winreg.REG_SZ, self._launch_command())
+                return
+            try:
+                winreg.DeleteValue(key, RUN_VALUE_NAME)
+            except OSError:
+                return
+
+
 class ScreenshotDesktopApp:
-    def __init__(self, root: tk.Tk, service: ScreenshotService, start_hidden: bool):
+    def __init__(self, root: tk.Tk, service: ScreenshotService, start_hidden: bool, config: dict):
         self.root = root
         self.service = service
         self._quitting = False
@@ -193,9 +236,14 @@ class ScreenshotDesktopApp:
         self._gallery_tree = None
         self._gallery_paths = {}
         self._gallery_thumbs = {}
+        self._auto_start = AutoStartManager()
 
         self.save_dir_var = tk.StringVar(value=str(self.service.save_dir))
         self.hotkey_var = tk.StringVar(value=self.service.hotkey_display)
+        initial_auto_start = bool(config.get("auto_start", False))
+        if self._auto_start.supported:
+            initial_auto_start = self._auto_start.is_enabled()
+        self.auto_start_var = tk.BooleanVar(value=initial_auto_start)
         self.status_var = tk.StringVar(value=f"Ready. Hotkey: {self.service.hotkey_display}")
 
         self._icon_image = create_icon_image()
@@ -335,7 +383,7 @@ class ScreenshotDesktopApp:
         card = ttk.Frame(shell, style="Card.TFrame", padding=(18, 16))
         card.pack(fill="both", expand=True)
         card.grid_columnconfigure(1, weight=1)
-        card.grid_rowconfigure(8, weight=1)
+        card.grid_rowconfigure(9, weight=1)
 
         ttk.Label(card, text="Settings", style="CardTitle.TLabel").grid(
             row=0, column=0, columnspan=3, sticky="w"
@@ -369,8 +417,27 @@ class ScreenshotDesktopApp:
             style="Secondary.TButton",
         ).grid(row=3, column=2, padx=(10, 0))
 
+        auto_label = "Run at Windows startup"
+        if not self._auto_start.supported:
+            auto_label = "Run at startup (Windows only)"
+        auto_start_check = tk.Checkbutton(
+            card,
+            text=auto_label,
+            variable=self.auto_start_var,
+            bg=COLORS["card"],
+            fg=COLORS["text"],
+            activebackground=COLORS["card"],
+            activeforeground=COLORS["text"],
+            selectcolor=COLORS["card"],
+            font=("Segoe UI", 10),
+            anchor="w",
+        )
+        auto_start_check.grid(row=4, column=0, columnspan=3, sticky="w", pady=(10, 0))
+        if not self._auto_start.supported:
+            auto_start_check.configure(state="disabled")
+
         action_bar = ttk.Frame(card, style="Card.TFrame")
-        action_bar.grid(row=4, column=0, columnspan=3, sticky="w", pady=(18, 8))
+        action_bar.grid(row=5, column=0, columnspan=3, sticky="w", pady=(16, 8))
 
         ttk.Button(
             action_bar,
@@ -392,7 +459,7 @@ class ScreenshotDesktopApp:
         ).pack(side="left", padx=(8, 0))
 
         status_shell = tk.Frame(card, bg="#EEF3FF", bd=0, highlightthickness=1, highlightbackground="#D7E2FA")
-        status_shell.grid(row=5, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        status_shell.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
         status_shell.grid_columnconfigure(1, weight=1)
         dot = tk.Canvas(status_shell, width=12, height=12, bg="#EEF3FF", highlightthickness=0)
         dot.create_oval(2, 2, 10, 10, fill="#2E79FF", outline="")
@@ -409,11 +476,11 @@ class ScreenshotDesktopApp:
         status_label.grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=10)
 
         ttk.Separator(card, orient="horizontal").grid(
-            row=6, column=0, columnspan=3, sticky="ew", pady=(14, 12)
+            row=7, column=0, columnspan=3, sticky="ew", pady=(14, 12)
         )
 
         gallery_header = ttk.Frame(card, style="Card.TFrame")
-        gallery_header.grid(row=7, column=0, columnspan=3, sticky="ew")
+        gallery_header.grid(row=8, column=0, columnspan=3, sticky="ew")
         gallery_header.grid_columnconfigure(1, weight=1)
 
         ttk.Label(gallery_header, text="Screenshots", style="CardTitle.TLabel").grid(
@@ -439,7 +506,7 @@ class ScreenshotDesktopApp:
             highlightbackground="#D7E2FA",
             bd=0,
         )
-        table_shell.grid(row=8, column=0, columnspan=3, sticky="nsew")
+        table_shell.grid(row=9, column=0, columnspan=3, sticky="nsew")
         table_shell.grid_columnconfigure(0, weight=1)
         table_shell.grid_rowconfigure(0, weight=1)
 
@@ -469,7 +536,7 @@ class ScreenshotDesktopApp:
         self._gallery_tree = tree
 
         gallery_actions = ttk.Frame(card, style="Card.TFrame")
-        gallery_actions.grid(row=9, column=0, columnspan=3, pady=(10, 0))
+        gallery_actions.grid(row=10, column=0, columnspan=3, pady=(10, 0))
 
         ttk.Button(
             gallery_actions,
@@ -802,6 +869,7 @@ class ScreenshotDesktopApp:
     def save_settings(self):
         save_dir = self.save_dir_var.get().strip()
         hotkey = self.hotkey_var.get().strip()
+        auto_start = bool(self.auto_start_var.get())
         if not save_dir:
             messagebox.showerror("Invalid path", "Save folder cannot be empty.")
             return
@@ -810,11 +878,14 @@ class ScreenshotDesktopApp:
             return
 
         try:
+            if self._auto_start.supported:
+                self._auto_start.set_enabled(auto_start)
             previous_dir = Path(self.service.save_dir)
             self.service.update_settings(save_dir=save_dir, hotkey=hotkey)
             config = {
                 "save_dir": str(self.service.save_dir),
                 "hotkey": self.service.hotkey_display,
+                "auto_start": auto_start,
             }
             save_config(config)
             self.hotkey_var.set(self.service.hotkey_display)
@@ -822,7 +893,7 @@ class ScreenshotDesktopApp:
             if Path(self.service.save_dir) != previous_dir:
                 self.refresh_screenshot_list()
             self.status_var.set(
-                f"[{datetime.now():%H:%M:%S}] Settings saved. Hotkey: {self.service.hotkey_display}"
+                f"[{datetime.now():%H:%M:%S}] Settings saved. Hotkey: {self.service.hotkey_display} | Auto start: {'On' if auto_start else 'Off'}"
             )
         except (ValueError, OSError) as exc:
             messagebox.showerror("Failed to save settings", str(exc))
@@ -1012,7 +1083,7 @@ def main():
     enable_high_dpi_awareness()
     maybe_hide_console_window()
     root = tk.Tk()
-    ScreenshotDesktopApp(root, service, start_hidden=args.background)
+    ScreenshotDesktopApp(root, service, start_hidden=args.background, config=config)
     root.mainloop()
 
 

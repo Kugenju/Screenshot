@@ -10,6 +10,7 @@ A small Windows utility with:
 - bottom-left preview popup after each capture
 - screenshot gallery with thumbnails to view/open/delete captures
 - hotkey recording by pressing keys directly
+- optional auto-start at Windows login
 
 ## Setup
 
@@ -59,12 +60,13 @@ Double-click the EXE to run. It opens a standalone app window and keeps running 
 
 1. Open the app window.
 2. Set `Save folder`, then use `Record Keys` or input `Hotkey` manually.
-3. Press your hotkey anywhere in Windows to capture.
-4. The app plays a sound and shows a preview popup near the bottom-left after capture.
-5. Manage existing screenshots in the centered thumbnail table (`Open`, `Delete`, `Rename`, `Open Folder`, `Refresh`).
-6. Press `F2` on a selected screenshot to rename quickly.
-7. Minimize or close the window to hide into tray and continue running.
-8. Use tray icon menu to reopen settings, capture once, or exit.
+3. Toggle `Run at Windows startup` if you want auto-start on login.
+4. Press your hotkey anywhere in Windows to capture.
+5. The app plays a sound and shows a preview popup near the bottom-left after capture.
+6. Manage existing screenshots in the centered thumbnail table (`Open`, `Delete`, `Rename`, `Open Folder`, `Refresh`).
+7. Press `F2` on a selected screenshot to rename quickly.
+8. Minimize or close the window to hide into tray and continue running.
+9. Use tray icon menu to reopen settings, capture once, or exit.
 
 ## Supported hotkey keys
 
