@@ -14,16 +14,14 @@ $args = @(
     "--noconfirm",
     "--onefile",
     "--windowed",
+    "--hidden-import", "pystray._win32",
     "--name", "QuickScreenshot",
-    "--add-data", "templates;templates",
-    "--add-data", "static;static"
+    "app.py"
 )
 
 if ($Clean) {
     $args += "--clean"
 }
-
-$args += "app.py"
 
 Write-Host "Building QuickScreenshot.exe ..."
 & $PythonPath @args

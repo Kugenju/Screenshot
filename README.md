@@ -4,7 +4,8 @@ A small Windows utility with:
 
 - global hotkey to capture screen
 - save screenshots to your chosen folder
-- a local web UI for settings and preview
+- a native desktop settings window
+- system tray support (minimize to tray, keep running in background)
 
 ## Setup
 
@@ -18,21 +19,17 @@ py -m pip install -r requirements.txt
 py app.py
 ```
 
-On Windows, the app now hides the console window by default. To keep it visible for debugging:
-
-```powershell
-$env:SCREENSHOT_SHOW_CONSOLE=1; py app.py
-```
-
-Run fully in background (no browser auto-open):
+Start hidden in tray:
 
 ```powershell
 py app.py --background
 ```
 
-Default UI URL:
+On Windows, the app hides console by default. To keep it visible for debugging:
 
-`http://127.0.0.1:5123`
+```powershell
+$env:SCREENSHOT_SHOW_CONSOLE=1; py app.py
+```
 
 ## Build EXE (one-click)
 
@@ -52,14 +49,15 @@ Output:
 
 `dist\QuickScreenshot.exe`
 
-Double-click the EXE to run. It will keep listening for the global hotkey in background and the web page is used to change hotkey and screenshot save directory.
+Double-click the EXE to run. It opens a standalone app window and keeps running in system tray when minimized/closed.
 
 ## Usage
 
-1. Open the UI.
-2. Set `Save directory` and `Hotkey`, then click `Save settings`.
+1. Open the app window.
+2. Set `Save folder` and `Hotkey`, then click `Save Settings`.
 3. Press your hotkey anywhere in Windows to capture.
-4. Check `Recent screenshots` in the UI.
+4. Minimize or close the window to hide into tray and continue running.
+5. Use tray icon menu to reopen settings, capture once, or exit.
 
 ## Supported hotkey keys
 
