@@ -34,18 +34,22 @@ DEFAULT_CONFIG = {
 }
 
 COLORS = {
-    "bg": "#0E1628",
-    "surface": "#131F35",
-    "card": "#F8FAFF",
-    "title": "#ECF2FF",
-    "text": "#10233F",
-    "muted": "#5A6C87",
-    "accent": "#1D4ED8",
-    "accent_hover": "#1E40AF",
-    "secondary": "#E7EEFB",
-    "secondary_hover": "#D9E4FA",
-    "status": "#315079",
-    "preview_bg": "#F8FBFF",
+    "bg": "#EAF4F3",
+    "surface": "#FFFFFF",
+    "card": "#F6FBFA",
+    "title": "#123B37",
+    "text": "#0F2D2A",
+    "muted": "#4E6A66",
+    "accent": "#0D9488",
+    "accent_hover": "#0F766E",
+    "secondary": "#E2F3F0",
+    "secondary_hover": "#D2ECE7",
+    "status": "#2E5D57",
+    "status_bg": "#ECF8F6",
+    "border": "#BFDFD9",
+    "heading_bg": "#EAF8F5",
+    "selected": "#D1F1EA",
+    "preview_bg": "#F5FBFA",
 }
 
 STATE_SHIFT = 0x0001
@@ -161,15 +165,15 @@ def save_config(config):
 def create_icon_image(size=64):
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    draw.rounded_rectangle((4, 4, size - 4, size - 4), radius=14, fill=(29, 78, 216, 255))
-    draw.rounded_rectangle((12, 16, size - 12, size - 13), radius=8, fill=(241, 246, 255, 255))
-    draw.rounded_rectangle((18, 12, size - 18, 22), radius=5, fill=(241, 246, 255, 255))
+    draw.rounded_rectangle((4, 4, size - 4, size - 4), radius=14, fill=(13, 148, 136, 255))
+    draw.rounded_rectangle((12, 16, size - 12, size - 13), radius=8, fill=(241, 252, 249, 255))
+    draw.rounded_rectangle((18, 12, size - 18, 22), radius=5, fill=(241, 252, 249, 255))
     lens_size = int(size * 0.20)
     lens_x = size // 2
     lens_y = int(size * 0.52)
     draw.ellipse(
         (lens_x - lens_size, lens_y - lens_size, lens_x + lens_size, lens_y + lens_size),
-        fill=(64, 151, 255, 255),
+        fill=(45, 212, 191, 255),
     )
     draw.ellipse(
         (
@@ -178,7 +182,7 @@ def create_icon_image(size=64):
             lens_x + lens_size // 2,
             lens_y + lens_size // 2,
         ),
-        fill=(224, 241, 255, 255),
+        fill=(204, 251, 241, 255),
     )
     return img
 
@@ -277,32 +281,38 @@ class ScreenshotDesktopApp:
             "Title.TLabel",
             background=COLORS["bg"],
             foreground=COLORS["title"],
-            font=("Segoe UI", 22, "bold"),
+            font=("Segoe UI", 23, "bold"),
         )
         style.configure(
             "Subtitle.TLabel",
             background=COLORS["bg"],
-            foreground="#9BB2D6",
+            foreground=COLORS["muted"],
             font=("Segoe UI", 10),
         )
         style.configure(
-            "CardTitle.TLabel",
-            background=COLORS["card"],
+            "SectionTitle.TLabel",
+            background=COLORS["surface"],
             foreground=COLORS["text"],
             font=("Segoe UI", 12, "bold"),
         )
         style.configure(
-            "Body.TLabel",
-            background=COLORS["card"],
+            "SectionBody.TLabel",
+            background=COLORS["surface"],
             foreground=COLORS["muted"],
             font=("Segoe UI", 10),
+        )
+        style.configure(
+            "FieldLabel.TLabel",
+            background=COLORS["surface"],
+            foreground=COLORS["text"],
+            font=("Segoe UI", 10, "bold"),
         )
         style.configure(
             "Primary.TButton",
             background=COLORS["accent"],
             foreground="white",
             borderwidth=0,
-            padding=(14, 8),
+            padding=(13, 8),
             font=("Segoe UI", 10, "bold"),
         )
         style.map(
@@ -325,9 +335,9 @@ class ScreenshotDesktopApp:
             "App.TEntry",
             fieldbackground="white",
             foreground=COLORS["text"],
-            bordercolor="#D7E1F2",
-            lightcolor="#D7E1F2",
-            darkcolor="#D7E1F2",
+            bordercolor=COLORS["border"],
+            lightcolor=COLORS["border"],
+            darkcolor=COLORS["border"],
             insertcolor=COLORS["text"],
             padding=7,
             font=("Segoe UI", 10),
@@ -336,26 +346,26 @@ class ScreenshotDesktopApp:
             "Gallery.Treeview",
             font=("Segoe UI", 10),
             rowheight=76,
-            background="white",
-            fieldbackground="white",
+            background=COLORS["surface"],
+            fieldbackground=COLORS["surface"],
             foreground=COLORS["text"],
             borderwidth=0,
         )
         style.configure(
             "Gallery.Treeview.Heading",
             font=("Segoe UI", 10, "bold"),
-            background="#EAF1FF",
+            background=COLORS["heading_bg"],
             foreground=COLORS["text"],
             relief="flat",
         )
         style.map(
             "Gallery.Treeview",
-            background=[("selected", "#DCEAFF")],
+            background=[("selected", COLORS["selected"])],
             foreground=[("selected", COLORS["text"])],
         )
         style.map(
             "Gallery.Treeview.Heading",
-            background=[("active", "#DCEAFF")],
+            background=[("active", COLORS["selected"])],
         )
 
     def _apply_window_icon(self):
@@ -367,8 +377,8 @@ class ScreenshotDesktopApp:
 
     def _build_ui(self):
         self.root.title("Quick Screenshot")
-        self.root.geometry("920x640")
-        self.root.minsize(860, 560)
+        self.root.geometry("1080x700")
+        self.root.minsize(940, 620)
 
         shell = ttk.Frame(self.root, style="App.TFrame", padding=(22, 18))
         shell.pack(fill="both", expand=True)
@@ -376,98 +386,126 @@ class ScreenshotDesktopApp:
         ttk.Label(shell, text="Quick Screenshot", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             shell,
-            text="Beautiful desktop capture tool. Minimize to tray, keep working quietly.",
+            text="Fast desktop capture with tray mode, hotkey recording, and file management.",
             style="Subtitle.TLabel",
         ).pack(anchor="w", pady=(3, 14))
 
-        card = ttk.Frame(shell, style="Card.TFrame", padding=(18, 16))
-        card.pack(fill="both", expand=True)
-        card.grid_columnconfigure(1, weight=1)
-        card.grid_rowconfigure(9, weight=1)
+        layout = ttk.Frame(shell, style="App.TFrame")
+        layout.pack(fill="both", expand=True)
+        layout.grid_columnconfigure(0, weight=0)
+        layout.grid_columnconfigure(1, weight=1)
+        layout.grid_rowconfigure(0, weight=1)
 
-        ttk.Label(card, text="Settings", style="CardTitle.TLabel").grid(
-            row=0, column=0, columnspan=3, sticky="w"
+        settings_panel = tk.Frame(
+            layout,
+            bg=COLORS["surface"],
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=COLORS["border"],
+            padx=16,
+            pady=16,
+        )
+        settings_panel.grid(row=0, column=0, sticky="ns", padx=(0, 12))
+        settings_panel.grid_columnconfigure(0, weight=1)
+
+        ttk.Label(settings_panel, text="Settings", style="SectionTitle.TLabel").grid(
+            row=0, column=0, sticky="w"
         )
         ttk.Label(
-            card,
-            text="Choose screenshot folder and global hotkey.",
-            style="Body.TLabel",
-        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(3, 14))
+            settings_panel,
+            text="Control save location and global shortcut.",
+            style="SectionBody.TLabel",
+        ).grid(row=1, column=0, sticky="w", pady=(3, 12))
 
-        ttk.Label(card, text="Save folder", style="Body.TLabel").grid(
-            row=2, column=0, sticky="w", padx=(0, 12)
+        ttk.Label(settings_panel, text="Save folder", style="FieldLabel.TLabel").grid(
+            row=2, column=0, sticky="w"
         )
-        ttk.Entry(card, textvariable=self.save_dir_var, style="App.TEntry").grid(
-            row=2, column=1, sticky="ew", pady=(0, 12)
+        save_row = ttk.Frame(settings_panel, style="Surface.TFrame")
+        save_row.grid(row=3, column=0, sticky="ew", pady=(4, 10))
+        save_row.grid_columnconfigure(0, weight=1)
+        ttk.Entry(save_row, textvariable=self.save_dir_var, style="App.TEntry").grid(
+            row=0, column=0, sticky="ew"
         )
         ttk.Button(
-            card, text="Browse", command=self.choose_save_dir, style="Secondary.TButton"
-        ).grid(row=2, column=2, padx=(10, 0), pady=(0, 12))
+            save_row, text="Browse", command=self.choose_save_dir, style="Secondary.TButton"
+        ).grid(row=0, column=1, padx=(8, 0))
 
-        ttk.Label(card, text="Hotkey", style="Body.TLabel").grid(
-            row=3, column=0, sticky="w", padx=(0, 12)
+        ttk.Label(settings_panel, text="Hotkey", style="FieldLabel.TLabel").grid(
+            row=4, column=0, sticky="w"
         )
-        ttk.Entry(card, textvariable=self.hotkey_var, style="App.TEntry").grid(
-            row=3, column=1, sticky="ew"
+        hotkey_row = ttk.Frame(settings_panel, style="Surface.TFrame")
+        hotkey_row.grid(row=5, column=0, sticky="ew", pady=(4, 10))
+        hotkey_row.grid_columnconfigure(0, weight=1)
+        ttk.Entry(hotkey_row, textvariable=self.hotkey_var, style="App.TEntry").grid(
+            row=0, column=0, sticky="ew"
         )
         ttk.Button(
-            card,
+            hotkey_row,
             text="Record Keys",
             command=self.record_hotkey,
             style="Secondary.TButton",
-        ).grid(row=3, column=2, padx=(10, 0))
+        ).grid(row=0, column=1, padx=(8, 0))
 
         auto_label = "Run at Windows startup"
         if not self._auto_start.supported:
             auto_label = "Run at startup (Windows only)"
         auto_start_check = tk.Checkbutton(
-            card,
+            settings_panel,
             text=auto_label,
             variable=self.auto_start_var,
-            bg=COLORS["card"],
+            bg=COLORS["surface"],
             fg=COLORS["text"],
-            activebackground=COLORS["card"],
+            activebackground=COLORS["surface"],
             activeforeground=COLORS["text"],
-            selectcolor=COLORS["card"],
+            selectcolor=COLORS["surface"],
             font=("Segoe UI", 10),
             anchor="w",
         )
-        auto_start_check.grid(row=4, column=0, columnspan=3, sticky="w", pady=(10, 0))
+        auto_start_check.grid(row=6, column=0, sticky="w", pady=(2, 0))
         if not self._auto_start.supported:
             auto_start_check.configure(state="disabled")
 
-        action_bar = ttk.Frame(card, style="Card.TFrame")
-        action_bar.grid(row=5, column=0, columnspan=3, sticky="w", pady=(16, 8))
+        action_bar = ttk.Frame(settings_panel, style="Surface.TFrame")
+        action_bar.grid(row=7, column=0, sticky="ew", pady=(14, 0))
+        action_bar.grid_columnconfigure(0, weight=1)
+        action_bar.grid_columnconfigure(1, weight=1)
+        action_bar.grid_columnconfigure(2, weight=1)
 
         ttk.Button(
             action_bar,
             text="Save Settings",
             command=self.save_settings,
             style="Primary.TButton",
-        ).pack(side="left")
+        ).grid(row=0, column=0, sticky="ew")
         ttk.Button(
             action_bar,
             text="Take Screenshot",
             command=self.take_screenshot,
             style="Secondary.TButton",
-        ).pack(side="left", padx=(8, 0))
+        ).grid(row=0, column=1, sticky="ew", padx=8)
         ttk.Button(
             action_bar,
             text="Minimize to Tray",
             command=self.hide_to_tray,
             style="Secondary.TButton",
-        ).pack(side="left", padx=(8, 0))
+        ).grid(row=0, column=2, sticky="ew")
 
-        status_shell = tk.Frame(card, bg="#EEF3FF", bd=0, highlightthickness=1, highlightbackground="#D7E2FA")
-        status_shell.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(10, 0))
+        status_shell = tk.Frame(
+            settings_panel,
+            bg=COLORS["status_bg"],
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=COLORS["border"],
+        )
+        status_shell.grid(row=8, column=0, sticky="ew", pady=(14, 0))
         status_shell.grid_columnconfigure(1, weight=1)
-        dot = tk.Canvas(status_shell, width=12, height=12, bg="#EEF3FF", highlightthickness=0)
-        dot.create_oval(2, 2, 10, 10, fill="#2E79FF", outline="")
+        dot = tk.Canvas(status_shell, width=12, height=12, bg=COLORS["status_bg"], highlightthickness=0)
+        dot.create_oval(2, 2, 10, 10, fill=COLORS["accent"], outline="")
         dot.grid(row=0, column=0, padx=(10, 8), pady=10)
         status_label = tk.Label(
             status_shell,
             textvariable=self.status_var,
-            bg="#EEF3FF",
+            bg=COLORS["status_bg"],
             fg=COLORS["status"],
             anchor="w",
             justify="left",
@@ -475,21 +513,33 @@ class ScreenshotDesktopApp:
         )
         status_label.grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=10)
 
-        ttk.Separator(card, orient="horizontal").grid(
-            row=7, column=0, columnspan=3, sticky="ew", pady=(14, 12)
+        gallery_panel = tk.Frame(
+            layout,
+            bg=COLORS["surface"],
+            bd=0,
+            highlightthickness=1,
+            highlightbackground=COLORS["border"],
+            padx=16,
+            pady=16,
         )
+        gallery_panel.grid(row=0, column=1, sticky="nsew")
+        gallery_panel.grid_columnconfigure(0, weight=1)
+        gallery_panel.grid_rowconfigure(2, weight=1)
 
-        gallery_header = ttk.Frame(card, style="Card.TFrame")
-        gallery_header.grid(row=8, column=0, columnspan=3, sticky="ew")
-        gallery_header.grid_columnconfigure(1, weight=1)
+        gallery_header = ttk.Frame(gallery_panel, style="Surface.TFrame")
+        gallery_header.grid(row=0, column=0, sticky="ew")
+        gallery_header.grid_columnconfigure(0, weight=1)
 
-        ttk.Label(gallery_header, text="Screenshots", style="CardTitle.TLabel").grid(
+        header_copy = ttk.Frame(gallery_header, style="Surface.TFrame")
+        header_copy.grid(row=0, column=0, sticky="w")
+
+        ttk.Label(header_copy, text="Screenshots", style="SectionTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
-            gallery_header,
+            header_copy,
             text="Browse, open, and delete existing captures.",
-            style="Body.TLabel",
+            style="SectionBody.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(2, 8))
 
         ttk.Button(
@@ -497,16 +547,16 @@ class ScreenshotDesktopApp:
             text="Refresh",
             command=self.refresh_screenshot_list,
             style="Secondary.TButton",
-        ).grid(row=0, column=2, rowspan=2, sticky="e")
+        ).grid(row=0, column=1, rowspan=2, sticky="e")
 
         table_shell = tk.Frame(
-            card,
-            bg="white",
+            gallery_panel,
+            bg=COLORS["surface"],
             highlightthickness=1,
-            highlightbackground="#D7E2FA",
+            highlightbackground=COLORS["border"],
             bd=0,
         )
-        table_shell.grid(row=9, column=0, columnspan=3, sticky="nsew")
+        table_shell.grid(row=2, column=0, sticky="nsew")
         table_shell.grid_columnconfigure(0, weight=1)
         table_shell.grid_rowconfigure(0, weight=1)
 
@@ -518,12 +568,12 @@ class ScreenshotDesktopApp:
         )
         tree.heading("#0", text="Preview", anchor="center")
         tree.column("#0", width=145, anchor="center", stretch=False)
-        tree.heading("filename", text="Filename", anchor="center")
+        tree.heading("filename", text="Filename", anchor="w")
         tree.heading("modified", text="Modified", anchor="center")
-        tree.heading("size", text="Size", anchor="center")
-        tree.column("filename", width=360, anchor="center")
+        tree.heading("size", text="Size", anchor="e")
+        tree.column("filename", width=360, anchor="w")
         tree.column("modified", width=185, anchor="center")
-        tree.column("size", width=84, anchor="center", stretch=False)
+        tree.column("size", width=84, anchor="e", stretch=False)
 
         scroll_y = ttk.Scrollbar(table_shell, orient="vertical", command=tree.yview)
         tree.configure(yscrollcommand=scroll_y.set)
@@ -535,8 +585,8 @@ class ScreenshotDesktopApp:
         tree.bind("<F2>", lambda _evt: self.rename_selected_screenshot())
         self._gallery_tree = tree
 
-        gallery_actions = ttk.Frame(card, style="Card.TFrame")
-        gallery_actions.grid(row=10, column=0, columnspan=3, pady=(10, 0))
+        gallery_actions = ttk.Frame(gallery_panel, style="Surface.TFrame")
+        gallery_actions.grid(row=3, column=0, pady=(10, 0), sticky="w")
 
         ttk.Button(
             gallery_actions,
@@ -755,11 +805,11 @@ class ScreenshotDesktopApp:
                 thumb = ImageOps.fit(image.convert("RGB"), size, method=LANCZOS)
             return ImageTk.PhotoImage(thumb)
         except Exception:
-            fallback = Image.new("RGB", size, "#E8EFFC")
+            fallback = Image.new("RGB", size, "#EAF8F5")
             draw = ImageDraw.Draw(fallback)
-            draw.rectangle((10, 10, size[0] - 10, size[1] - 10), outline="#9DB4DF", width=2)
-            draw.line((14, size[1] - 16, size[0] - 14, size[1] - 16), fill="#9DB4DF", width=2)
-            draw.text((16, 24), "No Preview", fill="#5F78A8")
+            draw.rectangle((10, 10, size[0] - 10, size[1] - 10), outline="#7EB7AD", width=2)
+            draw.line((14, size[1] - 16, size[0] - 14, size[1] - 16), fill="#7EB7AD", width=2)
+            draw.text((16, 24), "No Preview", fill="#3D6E66")
             return ImageTk.PhotoImage(fallback)
 
     def _selected_gallery_path(self):
@@ -927,7 +977,7 @@ class ScreenshotDesktopApp:
         window.withdraw()
         window.overrideredirect(True)
         window.attributes("-topmost", True)
-        window.configure(bg="#D4E3FF")
+        window.configure(bg=COLORS["border"])
 
         box = tk.Frame(window, bg=COLORS["preview_bg"], bd=0, padx=10, pady=10)
         box.pack(fill="both", expand=True, padx=1, pady=1)
