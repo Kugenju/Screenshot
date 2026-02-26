@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quick Screenshot Tool</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>Quick Screenshot Tool</h1>
+        <p>Set a global hotkey and save screenshots to any local folder.</p>
+      </header>
+
+      <section class="panel">
+        <h2>Settings</h2>
+        <form id="settings-form">
+          <label>
+            Save directory
+            <input id="save-dir" type="text" required placeholder="C:\Screenshots" />
+          </label>
+          <label>
+            Hotkey
+            <input id="hotkey" type="text" required placeholder="Ctrl+Shift+S" />
+          </label>
+          <div class="actions">
+            <button type="submit">Save settings</button>
+            <button id="capture-btn" type="button" class="secondary">Take screenshot now</button>
+          </div>
+          <p id="status" class="status"></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="row">
+          <h2>Recent screenshots</h2>
+          <button id="refresh-btn" type="button" class="secondary">Refresh</button>
+        </div>
+        <div id="gallery" class="gallery"></div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
